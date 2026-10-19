@@ -46,6 +46,42 @@ func TestModelRouteWritesValidatesCatalogAndModes(t *testing.T) {
 	}}, catalog, false); err == nil {
 		t.Fatal("duplicate root model was accepted")
 	}
+	if _, err := modelRouteWrites(modelRouteWriteBody{Routes: []modelRouteWriteRequest{
+		{RootModel: "hidden-model", Mode: "auto"},
+	}}, catalog, false); err == nil {
+		t.Fatal("an unavailable root model was accepted")
+	}
+}
+
+func TestFilterModelRouteCatalogUsesAvailableRoots(t *testing.T) {
+	rows := []model.ModelRouteCatalog{
+		{RootModel: "glm-5.3", CallPoint: "Bailian/glm-5.3"},
+		{RootModel: "ZHIPU/GLM-5.3", CallPoint: "Bailian/ZHIPU/GLM-5.3"},
+		{RootModel: "kimi-k3", CallPoint: "Clinepass/kimi-k3"},
+	}
+	filtered := filterModelRouteCatalog(rows, map[string]bool{"glm-5.3": true})
+	if len(filtered) != 1 || filtered[0].RootModel != "glm-5.3" || filtered[0].CallPoint != "Bailian/glm-5.3" {
+		t.Fatalf("filtered catalog = %+v", filtered)
+	}
+}
+
+func TestModelRouteTokenLimitedUsesKeyModelLimits(t *testing.T) {
+	token := &model.Token{ModelLimitsEnabled: true, ModelLimits: "glm-5.3"}
+	filtered := modelRouteTokenLimited([]string{"glm-5.3", "kimi-k3"}, token)
+	if len(filtered) != 1 || filtered[0] != "glm-5.3" {
+		t.Fatalf("token-limited models = %+v", filtered)
+	}
+}
+
+func TestModelRouteGroupsForTokenUsesExplicitAndInheritedGroups(t *testing.T) {
+	groups, err := modelRouteGroupsForToken("default", &model.Token{Group: "vip"})
+	if err != nil || len(groups) != 1 || groups[0] != "vip" {
+		t.Fatalf("explicit token groups = %+v, %v", groups, err)
+	}
+	groups, err = modelRouteGroupsForToken("default", &model.Token{})
+	if err != nil || len(groups) != 1 || groups[0] != "default" {
+		t.Fatalf("inherited token groups = %+v, %v", groups, err)
+	}
 }
 
 func TestBuildModelRouteCatalogViewPrecedence(t *testing.T) {

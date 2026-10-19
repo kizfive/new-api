@@ -7339,15 +7339,18 @@
     "Key-level overrides for {{name}}": "{{name}} 的 Key 级覆盖",
     "Reference cost": "参考成本",
     "Unpriced": "未定价",
-    "CPA Request ID": "CPA Request ID",
-    "Upstream model": "Upstream model",
+    "CPA Request ID": "CPA 请求 ID",
+    "Upstream model": "上游模型",
     "Loading model costs": "正在加载模型成本",
     "Model cost": "模型成本",
-    "Reference cost only; quota is unchanged.": "仅参考成本，不改变额度。",
+    "Reference cost only; quota is unchanged.": "仅供参考成本，额度不变。",
     "Model / provider": "模型 / 提供商",
     "Apply roots to channel": "应用根模型到渠道",
     "Applied {{count}} root models to channel {{channel}}": "已向渠道 {{channel}} 应用 {{count}} 个根模型",
     "Failed to apply the catalog to the channel": "把目录应用到渠道失败",
-    "Enter a valid channel ID": "请输入有效的渠道 ID"
+    "Enter a valid channel ID": "请输入有效的渠道 ID",
+    "{{count}} upstreams": "{{count}} 个上游",
+    "Only models available to your account are shown.": "只显示当前账号可用的模型。",
+    "Try a different model or provider name.": "试试其他模型或提供商名称。"
   }
 }

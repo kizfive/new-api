@@ -105,11 +105,16 @@ export function ModelRoutes() {
       </SectionPageLayout.Actions>
       <SectionPageLayout.Content>
         <div className='flex flex-col gap-4'>
-          <p className='text-muted-foreground text-sm'>
-            {t(
-              'Choose a fixed upstream for each root model, or leave it automatic. Key-level overrides take precedence over these user defaults.'
-            )}
-          </p>
+          <div className='flex flex-col gap-1'>
+            <p className='text-muted-foreground text-sm'>
+              {t(
+                'Choose a fixed upstream for each root model, or leave it automatic. Key-level overrides take precedence over these user defaults.'
+              )}
+            </p>
+            <p className='text-muted-foreground text-xs'>
+              {t('Only models available to your account are shown.')}
+            </p>
+          </div>
           <ModelRouteEditor />
         </div>
       </SectionPageLayout.Content>

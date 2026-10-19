@@ -7348,6 +7348,9 @@
     "Apply roots to channel": "Apply roots to channel",
     "Applied {{count}} root models to channel {{channel}}": "Applied {{count}} root models to channel {{channel}}",
     "Failed to apply the catalog to the channel": "Failed to apply the catalog to the channel",
-    "Enter a valid channel ID": "Enter a valid channel ID"
+    "Enter a valid channel ID": "Enter a valid channel ID",
+    "{{count}} upstreams": "{{count}} upstreams",
+    "Only models available to your account are shown.": "Only models available to your account are shown.",
+    "Try a different model or provider name.": "Try a different model or provider name."
   }
 }

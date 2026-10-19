@@ -8,7 +8,9 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/service/modelroute"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 )
@@ -94,17 +96,97 @@ func buildModelRouteCatalogView(rows []model.ModelRouteCatalog, userRoutes []mod
 	return modelRouteCatalogView{SyncedAt: syncedAt, Models: models}
 }
 
-func loadModelRouteCatalog(c *gin.Context) ([]model.ModelRouteCatalog, bool) {
+func modelRouteGroupsForUser(userGroup string) []string {
+	groups := service.GetUserUsableGroups(userGroup)
+	names := make([]string, 0, len(groups))
+	for group := range groups {
+		names = append(names, group)
+	}
+	return names
+}
+
+func modelRouteGroupsForToken(userGroup string, token *model.Token) ([]string, error) {
+	switch token.Group {
+	case "auto":
+		groups, err := token.GetAutoGroups()
+		if err != nil {
+			return nil, err
+		}
+		if groups == nil {
+			return service.GetUserAutoGroup(userGroup), nil
+		}
+		return service.FilterUserTokenAutoGroups(userGroup, groups), nil
+	case "":
+		return []string{userGroup}, nil
+	default:
+		return []string{token.Group}, nil
+	}
+}
+
+func modelRouteTokenLimited(models []string, token *model.Token) []string {
+	if token == nil || !token.ModelLimitsEnabled {
+		return models
+	}
+	limits := token.GetModelLimitsMap()
+	filtered := make([]string, 0, len(models))
+	for _, modelName := range models {
+		if limits[modelName] || limits[ratio_setting.RoutingMatchModelName(modelName)] {
+			filtered = append(filtered, modelName)
+		}
+	}
+	return filtered
+}
+
+// modelRouteAvailableRoots mirrors the model directory's group and key limits so
+// a route editor never reveals models the caller cannot invoke.
+func modelRouteAvailableRoots(userId int, token *model.Token) (map[string]bool, error) {
+	user, err := model.GetUserCache(userId)
+	if err != nil {
+		return nil, err
+	}
+	var groups []string
+	if token == nil {
+		groups = modelRouteGroupsForUser(user.Group)
+	} else {
+		groups, err = modelRouteGroupsForToken(user.Group, token)
+		if err != nil {
+			return nil, err
+		}
+	}
+	models := modelRouteTokenLimited(service.GetGroupsEnabledModels(groups), token)
+	available := make(map[string]bool, len(models))
+	for _, modelName := range models {
+		available[modelName] = true
+	}
+	return available, nil
+}
+
+func filterModelRouteCatalog(rows []model.ModelRouteCatalog, available map[string]bool) []model.ModelRouteCatalog {
+	filtered := make([]model.ModelRouteCatalog, 0, len(rows))
+	for _, row := range rows {
+		if available[row.RootModel] {
+			filtered = append(filtered, row)
+		}
+	}
+	return filtered
+}
+
+func loadVisibleModelRouteCatalog(c *gin.Context, userId int, token *model.Token) ([]model.ModelRouteCatalog, bool) {
 	rows, err := model.ListModelRouteCatalog(c.Request.Context())
 	if err != nil {
 		common.ApiError(c, err)
 		return nil, false
 	}
-	return rows, true
+	available, err := modelRouteAvailableRoots(userId, token)
+	if err != nil {
+		common.ApiError(c, err)
+		return nil, false
+	}
+	return filterModelRouteCatalog(rows, available), true
 }
 
 func GetUserModelRoutes(c *gin.Context) {
-	rows, ok := loadModelRouteCatalog(c)
+	rows, ok := loadVisibleModelRouteCatalog(c, c.GetInt("id"), nil)
 	if !ok {
 		return
 	}
@@ -146,6 +228,9 @@ func modelRouteWrites(body modelRouteWriteBody, catalog []model.ModelRouteCatalo
 			return nil, errors.New("duplicate root_model: " + rootModel)
 		}
 		seen[rootModel] = true
+		if valid[rootModel] == nil {
+			return nil, errors.New("root_model is not available to the current user: " + rootModel)
+		}
 		mode := strings.ToLower(strings.TrimSpace(route.Mode))
 		if mode == "" {
 			if strings.TrimSpace(route.CallPoint) == "" {
@@ -185,7 +270,7 @@ func modelRouteWrites(body modelRouteWriteBody, catalog []model.ModelRouteCatalo
 }
 
 func PutUserModelRoutes(c *gin.Context) {
-	rows, ok := loadModelRouteCatalog(c)
+	rows, ok := loadVisibleModelRouteCatalog(c, c.GetInt("id"), nil)
 	if !ok {
 		return
 	}
@@ -229,7 +314,7 @@ func GetTokenModelRoutes(c *gin.Context) {
 	if !ok {
 		return
 	}
-	rows, ok := loadModelRouteCatalog(c)
+	rows, ok := loadVisibleModelRouteCatalog(c, token.UserId, token)
 	if !ok {
 		return
 	}
@@ -256,7 +341,7 @@ func PutTokenModelRoutes(c *gin.Context) {
 	if !ok {
 		return
 	}
-	rows, ok := loadModelRouteCatalog(c)
+	rows, ok := loadVisibleModelRouteCatalog(c, token.UserId, token)
 	if !ok {
 		return
 	}
@@ -278,7 +363,7 @@ func PutTokenModelRoutes(c *gin.Context) {
 }
 
 func GetModelRouteCatalog(c *gin.Context) {
-	rows, ok := loadModelRouteCatalog(c)
+	rows, ok := loadVisibleModelRouteCatalog(c, c.GetInt("id"), nil)
 	if !ok {
 		return
 	}
