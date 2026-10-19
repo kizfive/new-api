@@ -74,7 +74,7 @@ export function ModelRoutes() {
   }
 
   return (
-    <SectionPageLayout fixedContent>
+    <SectionPageLayout>
       <SectionPageLayout.Title>{t('Model routing')}</SectionPageLayout.Title>
       <SectionPageLayout.Actions>
         {isAdmin ? (
