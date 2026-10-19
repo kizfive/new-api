@@ -369,6 +369,14 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 			other.SetPublic("route_failed_upstream", failed)
 		}
 	}
+	if other != nil {
+		if source := c.GetString("model_route_source"); source != "" && source != "auto" {
+			other.SetPublic("route_source", source)
+		}
+		if c.GetBool("model_route_stale") {
+			other.SetPublic("route_stale", true)
+		}
+	}
 	otherStr := other.JSONString()
 	// 判断是否需要记录 IP
 	needRecordIp := false
