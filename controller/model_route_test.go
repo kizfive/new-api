@@ -3,7 +3,9 @@ package controller
 import (
 	"testing"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting"
 )
 
 func boolPointer(value bool) *bool { return &value }
@@ -81,6 +83,45 @@ func TestModelRouteGroupsForTokenUsesExplicitAndInheritedGroups(t *testing.T) {
 	groups, err = modelRouteGroupsForToken("default", &model.Token{})
 	if err != nil || len(groups) != 1 || groups[0] != "default" {
 		t.Fatalf("inherited token groups = %+v, %v", groups, err)
+	}
+}
+
+func TestModelRouteAvailableRootsFollowsUsableGroups(t *testing.T) {
+	originalUsableGroups := setting.UserUsableGroups2JSONString()
+	t.Cleanup(func() {
+		if err := setting.UpdateUserUsableGroupsByJSONString(originalUsableGroups); err != nil {
+			t.Errorf("restore usable groups: %v", err)
+		}
+	})
+	if err := setting.UpdateUserUsableGroupsByJSONString(`{"default":"Default","vip":"VIP"}`); err != nil {
+		t.Fatal(err)
+	}
+
+	db := setupModelListControllerTestDB(t)
+	user := model.User{
+		Id:       2001,
+		Username: "model-route-visibility",
+		Password: "password",
+		Group:    "default",
+		Status:   common.UserStatusEnabled,
+	}
+	if err := db.Create(&user).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Create(&[]model.Ability{
+		{Group: "default", Model: "visible-model", ChannelId: 1, Enabled: true},
+		{Group: "vip", Model: "vip-model", ChannelId: 1, Enabled: true},
+		{Group: "other", Model: "hidden-model", ChannelId: 1, Enabled: true},
+	}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	available, err := modelRouteAvailableRoots(user.Id, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !available["visible-model"] || !available["vip-model"] || available["hidden-model"] {
+		t.Fatalf("available roots = %+v", available)
 	}
 }
 
