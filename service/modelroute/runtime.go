@@ -31,6 +31,11 @@ func Start() {
 	client, err := NewClient()
 	if err != nil {
 		common.SysLog(common.LogText("model route sidecar disabled: %s", err.Error()))
+		if model.LOG_DB != nil {
+			if updateErr := model.LOG_DB.Model(&model.Log{}).Where("cost_status = ?", "pending").Update("cost_status", "missing").Error; updateErr != nil {
+				common.SysLog(common.LogText("failed to close pending cost logs: %s", updateErr.Error()))
+			}
+		}
 		return
 	}
 	model.RefreshModelRouteCatalogCache()
