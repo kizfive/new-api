@@ -250,13 +250,15 @@ export function ModelRouteEditor(props: ModelRouteEditorProps) {
         />
       ) : (
         <div className='overflow-hidden rounded-xl border'>
-          <Table>
+          <Table className='min-w-[720px] table-fixed'>
             <TableHeader className='bg-muted/40'>
               <TableRow>
-                <TableHead className='px-3'>{t('Root model')}</TableHead>
-                <TableHead className='px-3'>{t('Mode')}</TableHead>
+                <TableHead className='w-[28%] px-3'>
+                  {t('Root model')}
+                </TableHead>
+                <TableHead className='w-40 px-3'>{t('Mode')}</TableHead>
                 <TableHead className='px-3'>{t('Upstream')}</TableHead>
-                <TableHead className='px-3'>{t('Fallback')}</TableHead>
+                <TableHead className='w-24 px-3'>{t('Fallback')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -270,8 +272,8 @@ export function ModelRouteEditor(props: ModelRouteEditorProps) {
                   draft.callPoint !== '' &&
                   !selectedProvider
                 return (
-                  <TableRow key={model.root_model}>
-                    <TableCell className='px-3 py-3'>
+                  <TableRow key={model.root_model} className='h-[4.25rem]'>
+                    <TableCell className='px-3 py-2'>
                       <div className='flex min-w-0 flex-col gap-1'>
                         <span className='truncate font-mono text-xs font-semibold'>
                           {model.root_model}
@@ -286,7 +288,7 @@ export function ModelRouteEditor(props: ModelRouteEditorProps) {
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className='px-3 py-3'>
+                    <TableCell className='px-3 py-2'>
                       <Select
                         value={draft.mode}
                         items={modeOptions}
@@ -324,7 +326,7 @@ export function ModelRouteEditor(props: ModelRouteEditorProps) {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className='px-3 py-3'>
+                    <TableCell className='px-3 py-2'>
                       {draft.mode === 'fixed' ? (
                         <div className='flex min-w-0 flex-col gap-1'>
                           <Select
@@ -344,7 +346,7 @@ export function ModelRouteEditor(props: ModelRouteEditorProps) {
                           >
                             <SelectTrigger
                               size='sm'
-                              className='w-full max-w-[22rem] min-w-[15rem]'
+                              className='w-full max-w-[22rem]'
                               aria-label={t('Upstream')}
                             >
                               <SelectValue>
@@ -392,10 +394,14 @@ export function ModelRouteEditor(props: ModelRouteEditorProps) {
                           ) : null}
                         </div>
                       ) : (
-                        <span className='text-muted-foreground text-sm'>—</span>
+                        <div className='flex h-full items-center'>
+                          <span className='text-muted-foreground text-sm'>
+                            —
+                          </span>
+                        </div>
                       )}
                     </TableCell>
-                    <TableCell className='px-3 py-3'>
+                    <TableCell className='px-3 py-2'>
                       <Switch
                         checked={draft.fallback}
                         disabled={draft.mode !== 'fixed'}
