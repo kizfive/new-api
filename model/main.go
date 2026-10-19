@@ -376,6 +376,9 @@ func migrateDB() error {
 		&CasbinRule{},
 		&AuthzRole{},
 		&UserAccessToken{},
+		&ModelRouteCatalog{},
+		&UserModelRoute{},
+		&TokenModelRoute{},
 	)
 	if err != nil {
 		return err
@@ -416,7 +419,29 @@ func migrateClickHouseLogDB() error {
 	if err := LOG_DB.Exec(clickHouseLogCreateTableSQL(ttlDays)).Error; err != nil {
 		return err
 	}
+	if err := ensureClickHouseLogColumns(); err != nil {
+		return err
+	}
 	return syncClickHouseLogTTL(ttlDays)
+}
+
+func ensureClickHouseLogColumns() error {
+	columns := []string{
+		"cpa_request_id String DEFAULT ''",
+		"upstream_provider String DEFAULT ''",
+		"upstream_model String DEFAULT ''",
+		"reference_cost_nanos Nullable(Int64)",
+		"pricing_status String DEFAULT ''",
+		"cost_status String DEFAULT ''",
+		"cost_checked_at Int64 DEFAULT 0",
+		"cost_attempts Int32 DEFAULT 0",
+	}
+	for _, column := range columns {
+		if err := LOG_DB.Exec("ALTER TABLE logs ADD COLUMN IF NOT EXISTS " + column).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func clickHouseLogTTLDays() int {
@@ -464,6 +489,14 @@ CREATE TABLE IF NOT EXISTS logs (
 	ip String DEFAULT '',
 	request_id String DEFAULT '',
 	upstream_request_id String DEFAULT '',
+	cpa_request_id String DEFAULT '',
+	upstream_provider String DEFAULT '',
+	upstream_model String DEFAULT '',
+	reference_cost_nanos Nullable(Int64),
+	pricing_status String DEFAULT '',
+	cost_status String DEFAULT '',
+	cost_checked_at Int64 DEFAULT 0,
+	cost_attempts Int32 DEFAULT 0,
 	other String DEFAULT ''
 )
 ENGINE = MergeTree()

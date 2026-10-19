@@ -23,6 +23,7 @@ import {
   CreditCard,
   FileText,
   FlaskConical,
+  GitBranch,
   Key,
   LayoutDashboard,
   ListTodo,
@@ -87,6 +88,11 @@ export function useSidebarData(): SidebarData {
             title: t('API Keys'),
             url: '/keys',
             icon: Key,
+          },
+          {
+            title: t('Model routing'),
+            url: '/model-routes',
+            icon: GitBranch,
           },
           {
             title: t('Usage Logs'),

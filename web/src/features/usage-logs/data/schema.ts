@@ -45,6 +45,12 @@ export const usageLogSchema = z.object({
   other: z.string().default(''),
   request_id: z.string().default(''),
   upstream_request_id: z.string().default(''),
+  cpa_request_id: z.string().optional(),
+  upstream_provider: z.string().optional(),
+  upstream_model: z.string().optional(),
+  reference_cost_nanos: z.number().nullish(),
+  pricing_status: z.string().optional(),
+  cost_status: z.string().optional(),
 })
 
 export type UsageLog = z.infer<typeof usageLogSchema>

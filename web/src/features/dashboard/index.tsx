@@ -101,6 +101,12 @@ const LazyPerformanceOverview = lazy(() =>
   }))
 )
 
+const LazyModelCostPanel = lazy(() =>
+  import('./components/models/model-cost-panel').then((m) => ({
+    default: m.ModelCostPanel,
+  }))
+)
+
 const LazyUserCharts = lazy(() =>
   import('./components/users/user-charts').then((m) => ({
     default: m.UserCharts,
@@ -387,6 +393,11 @@ export function Dashboard() {
                       modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
                     }
                   />
+                </Suspense>
+              </FadeIn>
+              <FadeIn delay={0.2}>
+                <Suspense fallback={<ModelChartsFallback />}>
+                  <LazyModelCostPanel filters={modelFilters} />
                 </Suspense>
               </FadeIn>
             </>

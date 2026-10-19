@@ -574,6 +574,12 @@ func doRequest(c *gin.Context, req *http.Request, info *common.RelayInfo) (*http
 	if resp == nil {
 		return nil, errors.New("resp is nil")
 	}
+	if traceID := resp.Header.Get("X-CPA-TRACE-ID"); traceID != "" {
+		c.Set("cpa_trace_id", traceID)
+		if requestID := common2.ParseCPARequestID(traceID); requestID != "" {
+			c.Set("cpa_request_id", requestID)
+		}
+	}
 	if common2.DebugEnabled {
 		policy := service.NormalizeHTTPTransportPolicy(info.ChannelSetting)
 		logger.LogDebug(c, "http transport negotiated: host=%s protocol=%s shards=%d policy=%s negotiated=%s",

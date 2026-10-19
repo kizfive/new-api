@@ -20,6 +20,7 @@ import { ApiKeysDeleteDialog } from './api-keys-delete-dialog'
 import { ApiKeysMutateDrawer } from './api-keys-mutate-drawer'
 import { useApiKeys } from './api-keys-provider'
 import { CCSwitchDialog } from './dialogs/cc-switch-dialog'
+import { ModelRouteOverridesDialog } from './model-route-overrides-dialog'
 
 export function ApiKeysDialogs() {
   const { open, setOpen, currentRow, resolvedKey } = useApiKeys()
@@ -36,6 +37,11 @@ export function ApiKeysDialogs() {
         open={open === 'cc-switch'}
         onOpenChange={(isOpen) => !isOpen && setOpen(null)}
         tokenKey={resolvedKey}
+      />
+      <ModelRouteOverridesDialog
+        open={open === 'model-routes'}
+        onOpenChange={(isOpen) => !isOpen && setOpen(null)}
+        token={currentRow}
       />
     </>
   )

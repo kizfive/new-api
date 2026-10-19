@@ -671,6 +671,34 @@ export function DetailsDialog(props: DetailsDialogProps) {
               mono
             />
           )}
+          {props.log.cpa_request_id && (
+            <DetailRow
+              label={t('CPA Request ID')}
+              value={props.log.cpa_request_id}
+              mono
+            />
+          )}
+          {props.log.upstream_provider && (
+            <DetailRow
+              label={t('Provider')}
+              value={props.log.upstream_provider}
+            />
+          )}
+          {props.log.upstream_model && (
+            <DetailRow
+              label={t('Upstream model')}
+              value={props.log.upstream_model}
+              mono
+            />
+          )}
+          {props.log.reference_cost_nanos != null && (
+            <DetailRow
+              label={t('Reference cost')}
+              value={formatBillingCurrencyFromUSD(
+                props.log.reference_cost_nanos / 1e9
+              )}
+            />
+          )}
 
           {props.isAdmin && props.log.channel > 0 && (
             <DetailRow

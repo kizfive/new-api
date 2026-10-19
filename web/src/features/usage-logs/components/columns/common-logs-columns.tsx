@@ -691,6 +691,20 @@ export function useCommonLogsColumns(
         meta: { mobileTitle: true },
       },
       {
+        accessorKey: 'upstream_provider',
+        header: t('Provider'),
+        cell: ({ row }) => {
+          const log = row.original
+          if (!isDisplayableLogType(log.type)) return null
+          if (!log.upstream_provider) {
+            return <span className='text-muted-foreground text-xs'>—</span>
+          }
+          return (
+            <span className='font-mono text-xs'>{log.upstream_provider}</span>
+          )
+        },
+      },
+      {
         accessorKey: 'is_stream',
         header: t('Stream'),
         cell: ({ row }) => {
@@ -782,6 +796,37 @@ export function useCommonLogsColumns(
         },
       },
 
+      {
+        accessorKey: 'reference_cost_nanos',
+        header: t('Reference cost'),
+        cell: ({ row }) => {
+          const log = row.original
+          if (!isDisplayableLogType(log.type)) return null
+          if (log.cost_status === 'pending') {
+            return (
+              <span className='text-muted-foreground text-xs'>
+                {t('Pending')}
+              </span>
+            )
+          }
+          if (log.cost_status === 'unpriced') {
+            return (
+              <span className='text-muted-foreground text-xs'>
+                {t('Unpriced')}
+              </span>
+            )
+          }
+          const nanos = log.reference_cost_nanos
+          if (nanos == null) {
+            return <span className='text-muted-foreground text-xs'>—</span>
+          }
+          return (
+            <span className='font-mono text-xs tabular-nums'>
+              {formatBillingCurrencyFromUSD(nanos / 1e9)}
+            </span>
+          )
+        },
+      },
       {
         accessorKey: 'use_time',
         header: t('Timing'),

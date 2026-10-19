@@ -1,0 +1,35 @@
+# Example overlay for the Oh My CPA integration. Merge it into the deployment's
+# existing compose file; the sidecar reads OMC's SQLite volume and is never
+# exposed on a host port.
+services:
+  new-api:
+    image: kizfive/new-api:${NEW_API_IMAGE_TAG:?set NEW_API_IMAGE_TAG}
+    environment:
+      OMC_SIDECAR_URL: http://omc-cost-sidecar:8091
+      OMC_SIDECAR_TOKEN: ${OMC_SIDECAR_TOKEN:?set OMC_SIDECAR_TOKEN}
+      MODEL_ROUTE_SYNC_INTERVAL: ${MODEL_ROUTE_SYNC_INTERVAL:-10m}
+    depends_on:
+      omc-cost-sidecar:
+        condition: service_started
+
+  omc-cost-sidecar:
+    image: kizfive/omc-cost-sidecar:${OMC_SIDECAR_IMAGE_TAG:?set OMC_SIDECAR_IMAGE_TAG}
+    environment:
+      OMC_SIDECAR_DB_PATH: /omc-data/oh-my-cpa.db
+      OMC_SIDECAR_LISTEN_ADDR: ":8091"
+      OMC_SIDECAR_TOKEN: ${OMC_SIDECAR_TOKEN:?set OMC_SIDECAR_TOKEN}
+    volumes:
+      # SQLite WAL needs -shm access; the process itself is mode=ro/query_only.
+      - oh-my-cpa-data:/omc-data:rw
+    user: "${OMC_SIDECAR_UID:-10001}:${OMC_SIDECAR_GID:-10001}"
+    read_only: true
+    init: true
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  oh-my-cpa-data:
+    external: true

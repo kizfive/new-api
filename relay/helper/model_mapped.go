@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	rootcommon "github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/model"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	hostreasoning "github.com/QuantumNous/new-api/setting/reasoning"
@@ -14,6 +15,45 @@ import (
 func ModelMappedHelper(c *gin.Context, info *relaycommon.RelayInfo, request dto.Request) error {
 	if info.ChannelMeta == nil {
 		info.ChannelMeta = &relaycommon.ChannelMeta{}
+	}
+
+	defer func() {
+		if info.IsModelMapped {
+			c.Set("model_route_upstream_model", info.UpstreamModelName)
+		}
+	}()
+
+	if c.GetBool("model_route_fallback") {
+		c.Set("model_route_source", "fallback")
+		c.Set("model_route_fallback_used", true)
+		c.Set("model_route_upstream_model", info.OriginModelName)
+		info.UpstreamModelName = info.OriginModelName
+		if request != nil {
+			request.SetModelName(info.OriginModelName)
+		}
+		return nil
+	}
+
+	if info.UserId > 0 || info.TokenId > 0 {
+		preference := model.ResolveModelRoute(info.UserId, info.TokenId, info.OriginModelName)
+		if preference.Source != "auto" {
+			c.Set("model_route_source", preference.Source)
+			c.Set("model_route_fallback_enabled", preference.FallbackEnabled)
+			if preference.CallPoint != "" {
+				if model.ModelRouteCallPointExists(info.OriginModelName, preference.CallPoint) {
+					info.UpstreamModelName = preference.CallPoint
+					info.IsModelMapped = true
+					c.Set("model_route_pinned", true)
+					c.Set("model_route_upstream_model", preference.CallPoint)
+					if request != nil {
+						request.SetModelName(preference.CallPoint)
+					}
+					return nil
+				}
+				c.Set("model_route_stale", true)
+				c.Set("model_route_source", "stale")
+			}
+		}
 	}
 
 	// map model name

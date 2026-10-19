@@ -55,27 +55,35 @@ func sanitizeClickHouseLikePattern(input string) (string, error) {
 }
 
 type Log struct {
-	Id                int    `json:"id" gorm:"index:idx_created_at_id,priority:2;index:idx_user_id_id,priority:2"`
-	UserId            int    `json:"user_id" gorm:"index;index:idx_user_id_id,priority:1"`
-	CreatedAt         int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:1;index:idx_created_at_type"`
-	Type              int    `json:"type" gorm:"index:idx_created_at_type"`
-	Content           string `json:"content"`
-	Username          string `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
-	TokenName         string `json:"token_name" gorm:"index;default:''"`
-	ModelName         string `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;default:''"`
-	Quota             int    `json:"quota" gorm:"default:0"`
-	PromptTokens      int    `json:"prompt_tokens" gorm:"default:0"`
-	CompletionTokens  int    `json:"completion_tokens" gorm:"default:0"`
-	UseTime           int    `json:"use_time" gorm:"default:0"`
-	IsStream          bool   `json:"is_stream"`
-	ChannelId         int    `json:"channel" gorm:"index"`
-	ChannelName       string `json:"channel_name" gorm:"->"`
-	TokenId           int    `json:"token_id" gorm:"default:0;index"`
-	Group             string `json:"group" gorm:"index"`
-	Ip                string `json:"ip" gorm:"index;default:''"`
-	RequestId         string `json:"request_id,omitempty" gorm:"type:varchar(64);index:idx_logs_request_id;default:''"`
-	UpstreamRequestId string `json:"upstream_request_id,omitempty" gorm:"type:varchar(128);index:idx_logs_upstream_request_id;default:''"`
-	Other             string `json:"other"`
+	Id                 int    `json:"id" gorm:"index:idx_created_at_id,priority:2;index:idx_user_id_id,priority:2"`
+	UserId             int    `json:"user_id" gorm:"index;index:idx_user_id_id,priority:1"`
+	CreatedAt          int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:1;index:idx_created_at_type;index:idx_logs_model_provider,priority:3"`
+	Type               int    `json:"type" gorm:"index:idx_created_at_type"`
+	Content            string `json:"content"`
+	Username           string `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
+	TokenName          string `json:"token_name" gorm:"index;default:''"`
+	ModelName          string `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;index:idx_logs_model_provider,priority:1;default:''"`
+	Quota              int    `json:"quota" gorm:"default:0"`
+	PromptTokens       int    `json:"prompt_tokens" gorm:"default:0"`
+	CompletionTokens   int    `json:"completion_tokens" gorm:"default:0"`
+	UseTime            int    `json:"use_time" gorm:"default:0"`
+	IsStream           bool   `json:"is_stream"`
+	ChannelId          int    `json:"channel" gorm:"index"`
+	ChannelName        string `json:"channel_name" gorm:"->"`
+	TokenId            int    `json:"token_id" gorm:"default:0;index"`
+	Group              string `json:"group" gorm:"index"`
+	Ip                 string `json:"ip" gorm:"index;default:''"`
+	RequestId          string `json:"request_id,omitempty" gorm:"type:varchar(64);index:idx_logs_request_id;default:''"`
+	UpstreamRequestId  string `json:"upstream_request_id,omitempty" gorm:"type:varchar(128);index:idx_logs_upstream_request_id;default:''"`
+	CpaRequestId       string `json:"cpa_request_id,omitempty" gorm:"type:varchar(64);index:idx_logs_cpa_request_id;default:''"`
+	UpstreamProvider   string `json:"upstream_provider,omitempty" gorm:"type:varchar(128);default:'';index:idx_logs_model_provider,priority:2"`
+	UpstreamModel      string `json:"upstream_model,omitempty" gorm:"type:varchar(255);default:''"`
+	ReferenceCostNanos *int64 `json:"reference_cost_nanos,omitempty" gorm:"bigint"`
+	PricingStatus      string `json:"pricing_status,omitempty" gorm:"type:varchar(32);default:''"`
+	CostStatus         string `json:"cost_status,omitempty" gorm:"type:varchar(16);default:'';index:idx_logs_cost_status,priority:1"`
+	CostCheckedAt      int64  `json:"cost_checked_at,omitempty" gorm:"bigint;default:0;index:idx_logs_cost_status,priority:2"`
+	CostAttempts       int    `json:"cost_attempts,omitempty" gorm:"default:0"`
+	Other              string `json:"other"`
 }
 
 // don't use iota, avoid change log type value
@@ -281,6 +289,7 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 	username := c.GetString("username")
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
+	cpaRequestId := c.GetString("cpa_request_id")
 	otherStr := other.JSONString()
 	// 判断是否需要记录 IP
 	needRecordIp := false
@@ -313,6 +322,8 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 		}(),
 		RequestId:         requestId,
 		UpstreamRequestId: upstreamRequestId,
+		CpaRequestId:      cpaRequestId,
+		UpstreamModel:     c.GetString("model_route_upstream_model"),
 		Other:             otherStr,
 	}
 	err := createLog(log)
@@ -344,9 +355,20 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 	username := c.GetString("username")
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
+	cpaRequestId := c.GetString("cpa_request_id")
 	createdAt := common.GetTimestamp()
+	costStatus := ""
+	if cpaRequestId != "" {
+		costStatus = "pending"
+	}
 	other := params.Other
 	content := other.setContent(params.Content)
+	if other != nil && c.GetBool("model_route_fallback_used") {
+		other.SetPublic("route_fallback", true)
+		if failed := c.GetString("model_route_failed_call_point"); failed != "" {
+			other.SetPublic("route_failed_upstream", failed)
+		}
+	}
 	otherStr := other.JSONString()
 	// 判断是否需要记录 IP
 	needRecordIp := false
@@ -379,6 +401,9 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 		}(),
 		RequestId:         requestId,
 		UpstreamRequestId: upstreamRequestId,
+		CpaRequestId:      cpaRequestId,
+		UpstreamModel:     c.GetString("model_route_upstream_model"),
+		CostStatus:        costStatus,
 		Other:             otherStr,
 	}
 	err := createLog(log)
@@ -477,6 +502,9 @@ type LogFilter struct {
 	Group             string
 	RequestId         string
 	UpstreamRequestId string
+	CpaRequestId      string
+	Provider          string
+	CostStatus        string
 }
 
 func (f LogFilter) apply(tx *gorm.DB) (*gorm.DB, error) {
@@ -498,6 +526,15 @@ func (f LogFilter) apply(tx *gorm.DB) (*gorm.DB, error) {
 	}
 	if f.UpstreamRequestId != "" {
 		tx = tx.Where("logs.upstream_request_id = ?", f.UpstreamRequestId)
+	}
+	if f.CpaRequestId != "" {
+		tx = tx.Where("logs.cpa_request_id = ?", f.CpaRequestId)
+	}
+	if f.Provider != "" {
+		tx = tx.Where("logs.upstream_provider = ?", f.Provider)
+	}
+	if f.CostStatus != "" {
+		tx = tx.Where("logs.cost_status = ?", f.CostStatus)
 	}
 	if f.StartTimestamp != 0 {
 		tx = tx.Where("logs.created_at >= ?", f.StartTimestamp)

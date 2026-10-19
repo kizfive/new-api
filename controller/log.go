@@ -28,6 +28,9 @@ func logFilterFromQuery(c *gin.Context, admin bool) model.LogFilter {
 		Group:             c.Query("group"),
 		RequestId:         c.Query("request_id"),
 		UpstreamRequestId: c.Query("upstream_request_id"),
+		CpaRequestId:      c.Query("cpa_request_id"),
+		Provider:          c.Query("provider"),
+		CostStatus:        c.Query("cost_status"),
 	}
 	if admin {
 		filter.Username = c.Query("username")

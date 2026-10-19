@@ -215,6 +215,11 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 		if decision.Action != "retry" {
 			break
 		}
+		if c.GetBool("model_route_pinned") && c.GetBool("model_route_fallback_enabled") {
+			c.Set("model_route_failed_call_point", relayInfo.UpstreamModelName)
+			c.Set("model_route_fallback", true)
+			c.Set("model_route_pinned", false)
+		}
 	}
 
 	useChannel := c.GetStringSlice("use_channel")
