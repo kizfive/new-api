@@ -61,8 +61,9 @@ export function DataTableView<TData>(props: DataTableViewProps<TData>) {
 
   return (
     <div
+      data-slot='data-table-frame'
       className={cn(
-        'overflow-hidden rounded-lg border',
+        'bg-card overflow-hidden rounded-xl border shadow-[var(--panel-shadow)]',
         props.containerClassName
       )}
       {...props.containerProps}

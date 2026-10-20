@@ -1,0 +1,183 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+/* Shared visual treatment stays below utilities so feature-level layout,
+ * editor surfaces and explicit component variants keep their own contract. */
+@layer components {
+  .panel-dot-grid {
+    background-color: var(--card);
+    background-image: radial-gradient(
+      color-mix(in oklch, var(--foreground) 12%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+
+  [data-slot='app-header'] {
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--card) 80%, transparent);
+  }
+
+  [data-slot='sidebar-content'] {
+    scrollbar-gutter: stable;
+  }
+
+  [data-slot='sidebar-group'] + [data-slot='sidebar-group'] {
+    margin-top: 0.5rem;
+  }
+
+  [data-slot='sidebar-menu-button'],
+  [data-slot='sidebar-menu-sub-button'] {
+    position: relative;
+    letter-spacing: 0.01em;
+    transition:
+      background-color 180ms var(--panel-ease),
+      color 180ms var(--panel-ease),
+      box-shadow 180ms var(--panel-ease);
+  }
+
+  [data-slot='sidebar-menu-button'][data-active] {
+    box-shadow: var(--panel-shadow);
+  }
+
+  [data-slot='sidebar-menu-button']:not([data-active]) > svg {
+    opacity: 0.7;
+  }
+
+  [data-slot='page-header'] {
+    position: relative;
+  }
+
+  [data-slot='page-title'] {
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  [data-slot='page-content'] {
+    scrollbar-gutter: stable;
+  }
+
+  [data-slot='page-footer'] {
+    box-shadow: 0 -4px 16px -12px rgb(0 0 0 / 8%);
+  }
+
+  [data-slot='card-description'],
+  [data-slot='dialog-description'],
+  [data-slot='sheet-description'],
+  [data-slot='empty-description'] {
+    line-height: 1.65;
+  }
+
+  [data-slot='button'] {
+    transition:
+      background-color 180ms var(--panel-ease),
+      border-color 180ms var(--panel-ease),
+      color 180ms var(--panel-ease),
+      box-shadow 180ms var(--panel-ease),
+      transform 180ms var(--panel-ease);
+  }
+
+  [data-slot='input'],
+  [data-slot='textarea'],
+  [data-slot='select-trigger'],
+  [data-slot='input-group'] {
+    background-color: var(--card);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 2%);
+  }
+
+  [data-slot='input']::placeholder,
+  [data-slot='textarea']::placeholder {
+    opacity: 0.75;
+  }
+
+  [data-slot='table'] {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-slot='table-head'] {
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.035em;
+  }
+
+  [data-slot='table-cell'] {
+    border-bottom: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+  }
+
+  [data-slot='table-body'] > tr:last-child > [data-slot='table-cell'] {
+    border-bottom: 0;
+  }
+
+  [data-slot='tabs-list'] {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklch, var(--border) 65%, transparent);
+  }
+
+  [data-slot='tabs-list'][data-variant='line'] {
+    box-shadow: none;
+  }
+
+  [data-slot='dialog-overlay'],
+  [data-slot='alert-dialog-overlay'],
+  [data-slot='sheet-overlay'],
+  [data-slot='drawer-overlay'] {
+    backdrop-filter: blur(4px);
+  }
+
+  [data-slot='dialog-title'],
+  [data-slot='alert-dialog-title'],
+  [data-slot='sheet-title'],
+  [data-slot='drawer-title'] {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  [data-slot='dropdown-menu-item'],
+  [data-slot='dropdown-menu-checkbox-item'],
+  [data-slot='dropdown-menu-radio-item'],
+  [data-slot='select-item'],
+  [data-slot='combobox-item'] {
+    transition:
+      background-color 140ms var(--panel-ease),
+      color 140ms var(--panel-ease);
+  }
+
+  [data-slot='empty-media'][data-variant='icon'] {
+    border: 1px solid var(--border);
+    box-shadow: var(--panel-shadow);
+  }
+
+  [data-slot='empty-title'] {
+    letter-spacing: -0.02em;
+  }
+
+  [data-slot='kbd'] {
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 0 var(--input);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  [data-slot='button'],
+  [data-slot='sidebar-container'],
+  [data-slot='sidebar-gap'],
+  [data-slot='sidebar-menu-button'],
+  [data-slot='sidebar-menu-sub-button'] {
+    transition: none;
+  }
+}

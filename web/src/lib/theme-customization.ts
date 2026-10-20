@@ -27,7 +27,7 @@ export const THEME_PRESETS = [
   {
     value: 'default',
     name: 'Default',
-    swatches: ['oklch(0.72 0.18 250)', 'oklch(0.7 0.12 280)'],
+    swatches: ['#18181b', '#fafafa'],
   },
   {
     // Inspired by Anthropic's official brand language: warm cream canvas
@@ -87,9 +87,9 @@ export type ContentLayout = 'full' | 'centered'
 /**
  * Font axis for the theme.
  *
- * - `default` — use the browser's sans-serif unless the active preset
+ * - `default` — use the bundled Sarasa UI SC unless the active preset
  *   specifies its own font (Anthropic uses serif).
- * - `sans` — explicitly use Public Sans.
+ * - `sans` — explicitly use Sarasa UI SC.
  * - `serif` — use Lora + CJK fallbacks. Monospace contexts keep their
  *   own family via Tailwind preflight and `.font-mono`.
  */

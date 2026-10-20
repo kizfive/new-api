@@ -29,6 +29,8 @@ For commercial licensing, please contact support@quantumnous.com
 
 @import './theme.css';
 @import './theme-presets.css';
+@import './fonts.css';
+@import './panel.css';
 
 @layer base {
   :root {
@@ -108,13 +110,25 @@ For commercial licensing, please contact support@quantumnous.com
   }
   html {
     @apply overflow-x-hidden font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   body {
     @apply bg-background text-foreground has-[div[data-variant='inset']]:bg-sidebar min-h-svh w-full;
     /* Font is driven by the theme's font axis via `--font-body`
      * (defined in theme.css, swapped by `[data-theme-font='...']` blocks
-     * in theme-presets.css). Defaults to the browser's sans-serif. */
+     * in theme-presets.css). Defaults to the bundled Sarasa UI SC. */
     font-family: var(--font-body);
+    line-height: 1.6;
+    transition:
+      background-color 240ms var(--panel-ease),
+      color 240ms var(--panel-ease);
+  }
+
+  ::selection {
+    background: var(--foreground);
+    color: var(--background);
   }
 
   /* Keep sticky headers stable while primitives lock body scrolling. */
@@ -557,28 +571,19 @@ For commercial licensing, please contact support@quantumnous.com
   }
 }
 
-/* Micro-interactions — Vercel-style subtle hover/active feedback */
+/* Quiet surface feedback keeps data panels stable under the pointer. */
 @media (prefers-reduced-motion: no-preference) {
   [data-slot='card']:not([data-card-hover='false']) {
     transition:
-      transform 150ms ease,
-      box-shadow 150ms ease;
+      border-color 200ms var(--panel-ease),
+      box-shadow 200ms var(--panel-ease);
   }
 
-  @media (min-width: 641px) {
+  @media (hover: hover) and (min-width: 641px) {
     [data-slot='card']:not([data-card-hover='false']):hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgb(0 0 0 / 0.06);
+      border-color: color-mix(in oklch, var(--foreground) 20%, var(--border));
+      box-shadow: var(--panel-shadow-hover);
     }
-
-    .dark [data-slot='card']:not([data-card-hover='false']):hover {
-      box-shadow: 0 4px 12px rgb(0 0 0 / 0.3);
-    }
-  }
-
-  button:not(:disabled):active,
-  [role='button']:not(:disabled):active {
-    transform: scale(0.98);
   }
 
   [data-slot='table'] tr {

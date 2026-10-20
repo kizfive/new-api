@@ -187,7 +187,7 @@ function RadioGroupItem(props: {
       >
         <CircleCheck
           className={cn(
-            'fill-primary size-6 stroke-white',
+            'fill-primary stroke-primary-foreground size-6',
             'group-data-unchecked:hidden',
             'absolute top-0 right-0 translate-x-1/2 -translate-y-1/2'
           )}
@@ -281,13 +281,13 @@ function PresetConfig() {
                 style={{
                   background:
                     preset.value === 'default'
-                      ? 'linear-gradient(135deg, oklch(0.68 0.2 25) 0%, oklch(0.8 0.17 85) 25%, oklch(0.72 0.18 155) 50%, oklch(0.66 0.19 245) 75%, oklch(0.68 0.2 315) 100%)'
+                      ? 'linear-gradient(135deg, #18181b 0%, #52525b 48%, #fafafa 100%)'
                       : `linear-gradient(135deg, ${preset.swatches[0]} 0%, ${preset.swatches[1] ?? preset.swatches[0]} 100%)`,
                 }}
               />
               <CircleCheck
                 className={cn(
-                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
+                  'fill-primary stroke-primary-foreground absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2',
                   'group-data-unchecked:hidden'
                 )}
                 aria-hidden='true'
@@ -325,7 +325,7 @@ function FontConfig() {
   const { defaults, customization, setFont } = useThemeCustomization()
   const autoFont = resolveThemeFont('default', customization.preset)
   const autoFontFamily =
-    autoFont === 'serif' ? 'var(--font-serif)' : 'sans-serif'
+    autoFont === 'serif' ? 'var(--font-serif)' : 'var(--font-ui-sans)'
   return (
     <div>
       <SectionTitle
@@ -358,7 +358,7 @@ function FontConfig() {
             >
               <CircleCheck
                 className={cn(
-                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
+                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-primary-foreground',
                   'group-data-unchecked:hidden'
                 )}
                 aria-hidden='true'
@@ -428,7 +428,7 @@ function RadiusConfig() {
             >
               <CircleCheck
                 className={cn(
-                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
+                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-primary-foreground',
                   'group-data-unchecked:hidden'
                 )}
                 aria-hidden='true'
@@ -515,7 +515,7 @@ function ScaleConfig() {
             >
               <CircleCheck
                 className={cn(
-                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
+                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-primary-foreground',
                   'group-data-unchecked:hidden'
                 )}
                 aria-hidden='true'
@@ -656,7 +656,7 @@ function ContentLayoutConfig() {
             >
               <CircleCheck
                 className={cn(
-                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
+                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-primary-foreground',
                   'group-data-unchecked:hidden'
                 )}
                 aria-hidden='true'
